@@ -1,6 +1,6 @@
 {
   "name": "@digix/react-ledger-container",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "React component for handling Ledger connectivity",
   "author": "Chris Hitchcott <hitchcott@gmail.com> (http://hitchcott.com)",
   "main": "lib/index.js",

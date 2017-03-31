@@ -5,6 +5,7 @@ import { addToHex, sanitizeAddress } from './helpers';
 
 export function signTransaction({ ethLedger, kdPath, txData }) {
   if (!ethLedger || !kdPath || !txData) { throw Error('Invalid Params'); }
+  const { eip155 } = ethLedger;
   return new Promise((resolve, reject) => {
     // TODO throw error if not sanitized...
     const sanitizedTxData = {
@@ -17,12 +18,13 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
       gas: addToHex(txData.gas, 21000),
     };
     const { raw } = new EthTx(sanitizedTxData);
+    // TODO confirm if this is correct...
     // set the chain ID if it's passed
-    raw[6] = Buffer.from([txData.chainId || 1]);
+    raw[6] = Buffer.from([(eip155 && txData.chainId) || 1]);
     raw[7] = 0;
     raw[8] = 0;
     // if it's the old version, disable eip
-    const rawTxToSign = ethLedger.eip155 ? raw : raw.slice(0, 6);
+    const rawTxToSign = eip155 ? raw : raw.slice(0, 6);
     const rawHash = rlp.encode(rawTxToSign).toString('hex');
     // sign the transaction
     ethLedger.signTransaction_async(kdPath, rawHash)

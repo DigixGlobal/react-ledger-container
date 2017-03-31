@@ -1,8 +1,8 @@
 # React Ledger Container (WIP)
 
-⚠️  Currently only working with the 1.2+ Ledger firmware.
+⚠️  Works with the 1.2+ Ledger firmware.
 
-❗️ Test suite hasn't been created yet, use with *extreme* cation! EIP155 implemented but not tested.
+❗️ Use with *extreme* cation! Not for production; very new. EIP155 theoretically implemented, but not tested.
 
 ### React component that implements the [Ledger Wallet API](https://github.com/LedgerHQ/ledger-node-js-api).
 
