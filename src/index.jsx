@@ -67,10 +67,14 @@ export default class LedgerContianer extends Component {
       if (this.ethLedger) { resolve(this.ethLedger); return; }
       ledgerco.comm_u2f.create_async().then((comm) => {
         comm.timeoutSeconds = TIMEOUT_DEFAULT;
-        this.ethLedger = new ledgerco.eth(comm);
+        const ethLedger = new ledgerco.eth(comm);
         this.ethLedger.getAppConfiguration_async().then((config) => {
-          // TODO check for EIP155 support
-          this.setState({ config });
+          const v = config.version && config.version.split('.').map(n => parseInt(n, 10));
+          // detect eip155 support
+          const eip155 = v && (v[0] > 1 || v[1] > 0 || v[2] > 2);
+          ethLedger.eip155 = eip155;
+          this.ethLedger = ethLedger;
+          this.setState({ config: { ...config, eip155 } });
           resolve();
         }).fail(reject);
       }).fail(reject);

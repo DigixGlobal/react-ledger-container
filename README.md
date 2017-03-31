@@ -1,6 +1,8 @@
 # React Ledger Container (WIP)
 
-⚠️  Currently only working with the *old* Ledger Nano firmware; will be updated to support both formats soon.
+⚠️  Currently only working with the 1.2+ Ledger firmware.
+
+❗️ Test suite hasn't been created yet, use with *extreme* cation! EIP155 implemented but not tested.
 
 ### React component that implements the [Ledger Wallet API](https://github.com/LedgerHQ/ledger-node-js-api).
 
@@ -9,14 +11,14 @@
 * Ledger Wallet config automatically passed as props
   * `version`
   * `arbitraryDataEnabled`
+  * `eip155`
 * Auto-configured `ethLedger` methods injection
   * `signTransaction`
   * `getAddress` (TODO)
   * `signPersonalMessage` (TODO)
 * More convenient API
   * Pass transaction object rather than rawTx (and handle compatibility)
-  * Automatically self-configures based on device version
-  * Backwards compatibility with old firmware version
+  * Automatically self-configures raw transaction data based on device version
   * Polls for connectivity, with intelligent poll times for enhanced UX
 * `expect` option for validating address
 * `onReady` event handler for triggering actions
@@ -63,6 +65,6 @@ SignLedgerTransaction.propTypes = {
 
 ## TODO
 
-* Test with new versions of Ledger firmware
+* Test with new version of Ledger firmware
 * `getAddress` & `signPersonalMessage`
 * Support for Bitcoin API

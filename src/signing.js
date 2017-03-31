@@ -17,14 +17,12 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
       gas: addToHex(txData.gas, 21000),
     };
     const { raw } = new EthTx(sanitizedTxData);
-    // TODO detect old and new version
-    const oldVersion = true;
     // set the chain ID if it's passed
     raw[6] = Buffer.from([txData.chainId || 1]);
     raw[7] = 0;
     raw[8] = 0;
     // if it's the old version, disable eip
-    const rawTxToSign = oldVersion ? raw.slice(0, 6) : raw;
+    const rawTxToSign = ethLedger.eip155 ? raw : raw.slice(0, 6);
     const rawHash = rlp.encode(rawTxToSign).toString('hex');
     // sign the transaction
     ethLedger.signTransaction_async(kdPath, rawHash)
