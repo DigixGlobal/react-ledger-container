@@ -1,10 +1,12 @@
 # React Ledger Container (WIP)
 
-### React component that implements the [Ledger Nano API](https://github.com/LedgerHQ/ledger-node-js-api).
+⚠️  Currently only working with the *old* Ledger Nano firmware; will be updated to support both formats soon.
+
+### React component that implements the [Ledger Wallet API](https://github.com/LedgerHQ/ledger-node-js-api).
 
 ## Features
 
-* App config automatically passed as props
+* Ledger Wallet config automatically passed as props
   * `version`
   * `arbitraryDataEnabled`
 * Auto-configured `ethLedger` methods injection
@@ -17,7 +19,7 @@
   * Backwards compatibility with old firmware version
   * Polls for connectivity, with intelligent poll times for enhanced UX
 * `expect` option for validating address
-* `onReady` event handler for signing actions
+* `onReady` event handler for triggering actions
 
 ## Example
 
@@ -31,9 +33,11 @@ export default class SignLedgerTransaction extends Component {
     this.handleSign = this.handleSign.bind(this);
   }
   handleSign({ signTransaction }) {
+    // txData = { to, nonce, gasPrice, value, data, gas } (w/ optional `from` for validating)
     const { txData, account, publishTransaction } = this.props;
+    // kdPath = "44'/60'/0'/0";
     const { kdPath } = account;
-    // this generated method will show the tx signing data on the ledger screen
+    // signTransaction method will show the signing UI on ledger screen
     signTransaction(kdPath, txData).then((signedTx) => {
       publishTransaction({ signedTx });
     })
