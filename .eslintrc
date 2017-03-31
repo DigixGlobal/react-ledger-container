@@ -1,0 +1,11 @@
+{
+  "extends": "airbnb",
+  "env": { "browser": true },
+  "plugins": ["react"],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
+  }
+}
