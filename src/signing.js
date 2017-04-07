@@ -20,10 +20,10 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
     const { raw } = new EthTx(sanitizedTxData);
     // TODO confirm if this is correct...
     // set the chain ID if it's passed
-    raw[6] = Buffer.from([(eip155 && txData.chainId) || 1]);
+    raw[6] = Buffer.from([txData.chainId || 1]);
     raw[7] = 0;
     raw[8] = 0;
-    // if it's the old version, disable eip
+    // TODO, determine if this is correct....
     const rawTxToSign = eip155 ? raw : raw.slice(0, 6);
     const rawHash = rlp.encode(rawTxToSign).toString('hex');
     // sign the transaction

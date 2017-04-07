@@ -31,6 +31,7 @@ export default class LedgerContianer extends Component {
   }
   getChildProps() {
     return {
+      ethLedger: this.ethLedger,
       config: this.state.config,
       signTransaction: this.handleSignTransaction,
       // TODO signMessage
@@ -42,6 +43,7 @@ export default class LedgerContianer extends Component {
     return new Promise((resolve, reject) => {
       this.initLedger().then(() => {
         try {
+          console.log('getting ', this.ethLedger);
           this.ethLedger.getAddress_async(kdPath || `${DEFAULT_KD_PATH}0`).then((result) => {
             if (address && sanitizeAddress(result.address) !== sanitizeAddress(address)) {
               return reject({ notExpected: true });
@@ -68,7 +70,7 @@ export default class LedgerContianer extends Component {
       ledgerco.comm_u2f.create_async().then((comm) => {
         comm.timeoutSeconds = TIMEOUT_DEFAULT;
         const ethLedger = new ledgerco.eth(comm);
-        this.ethLedger.getAppConfiguration_async().then((config) => {
+        ethLedger.getAppConfiguration_async().then((config) => {
           const v = config.version && config.version.split('.').map(n => parseInt(n, 10));
           // detect eip155 support
           const eip155 = v && (v[0] > 1 || v[1] > 0 || v[2] > 2);
@@ -127,7 +129,7 @@ export default class LedgerContianer extends Component {
   }
   renderLoading() {
     if (this.props.renderLoading) { return this.props.renderLoading(); }
-    return <span>Loading</span>;
+    return <span>Please connect Ledger, open the Ethereum app and enable <i>Browser Mode</i></span>;
   }
   renderError() {
     const { error } = this.state;
