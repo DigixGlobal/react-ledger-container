@@ -1,7 +1,7 @@
 import EthTx from 'ethereumjs-tx';
 import { rlp, addHexPrefix } from 'ethereumjs-util';
 
-import { addToHex, sanitizeAddress } from './helpers';
+import { sanitizeAddress } from './helpers';
 
 export function signTransaction({ ethLedger, kdPath, txData }) {
   if (!ethLedger || !kdPath || !txData) { throw Error('Invalid Params'); }
@@ -14,8 +14,7 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
       gasPrice: addHexPrefix(txData.gasPrice),
       value: addHexPrefix(txData.value),
       data: addHexPrefix(txData.data),
-      // bump gas amount slightly (nano adds this?)
-      gas: addToHex(txData.gas, 21000),
+      gas: addHexPrefix(txData.gas),
     };
     const { raw } = new EthTx(sanitizedTxData);
     // TODO confirm if this is correct...
