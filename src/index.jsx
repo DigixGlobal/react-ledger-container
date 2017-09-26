@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign, new-cap, react/require-default-props */
 
-import React, { PropTypes, Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import ledgerco from 'ledgerco';
 import u2f from 'ledgerco/browser/u2f-api';
 
