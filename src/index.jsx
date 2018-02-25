@@ -3,9 +3,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ledgerco from 'ledgerco';
-import u2f from 'ledgerco/browser/u2f-api';
+// import u2f from 'ledgerco/browser/u2f-api';
 
-import { signTransaction } from './signing';
+import { signTransaction, signMessage } from './signing';
 import { sanitizeAddress } from './helpers';
 
 import {
@@ -16,13 +16,14 @@ import {
   POLL_DISCONNECTED,
 } from './constants';
 
-global.u2f = u2f;
+// global.u2f = u2f;
 
 export default class LedgerContianer extends Component {
   constructor(props) {
     super(props);
     this.state = { error: false, ready: false, config: null };
     this.handleSignTransaction = this.handleSignTransaction.bind(this);
+    this.handleSignMessage = this.handleSignMessage.bind(this);
   }
   componentDidMount() {
     this.startPolling();
@@ -35,68 +36,86 @@ export default class LedgerContianer extends Component {
       ethLedger: this.ethLedger,
       config: this.state.config,
       signTransaction: this.handleSignTransaction,
-      // TODO signMessage
+      signMessage: this.handleSignMessage,
     };
   }
   getStatus() {
     const { expect } = this.props;
     const { kdPath, address } = expect || {};
     return new Promise((resolve, reject) => {
-      this.initLedger().then(() => {
-        try {
-          console.log('getting ', this.ethLedger);
-          this.ethLedger.getAddress_async(kdPath || `${DEFAULT_KD_PATH}0`).then((result) => {
-            if (address && sanitizeAddress(result.address) !== sanitizeAddress(address)) {
-              return reject({ notExpected: true });
-            }
-            return resolve();
-          }).fail(reject);
-        } catch (err) {
-          reject(err);
+      this.initLedger()
+        .then(() => {
+          try {
+            // console.log('getting ', this.ethLedger);
+            this.ethLedger
+              .getAddress_async(kdPath || `${DEFAULT_KD_PATH}0`)
+              .then(result => {
+                if (address && sanitizeAddress(result.address) !== sanitizeAddress(address)) {
+                  return reject({ notExpected: true });
+                }
+                return resolve();
+              })
+              .fail(reject);
+          } catch (err) {
+            reject(err);
+          }
+        })
+        .catch(reject);
+    })
+      .then(() => {
+        // only trigger `ready` if it's a new non-error...
+        if (!this.state.ready) {
+          this.setState({ error: false, ready: true });
+          this.handleOnReady();
         }
-      }).catch(reject);
-    })
-    .then(() => {
-      // only trigger `ready` if it's a new non-error...
-      if (!this.state.ready) {
-        this.setState({ error: false, ready: true });
-        this.handleOnReady();
-      }
-    })
-    .catch(error => this.setState({ error, ready: false }));
+      })
+      .catch(error => this.setState({ error, ready: false }));
   }
   initLedger() {
     return new Promise((resolve, reject) => {
-      if (this.ethLedger) { resolve(this.ethLedger); return; }
-      ledgerco.comm_u2f.create_async().then((comm) => {
-        comm.timeoutSeconds = TIMEOUT_DEFAULT;
-        const ethLedger = new ledgerco.eth(comm);
-        ethLedger.getAppConfiguration_async().then((config) => {
-          const v = config.version && config.version.split('.').map(n => parseInt(n, 10));
-          // detect eip155 support
-          const eip155 = v && (v[0] > 1 || v[1] > 0 || v[2] > 2);
-          ethLedger.eip155 = eip155;
-          this.ethLedger = ethLedger;
-          this.setState({ config: { ...config, eip155 } });
-          resolve();
-        }).fail(reject);
-      }).fail(reject);
+      if (this.ethLedger) {
+        resolve(this.ethLedger);
+        return;
+      }
+      ledgerco.comm_u2f
+        .create_async()
+        .then(comm => {
+          comm.timeoutSeconds = TIMEOUT_DEFAULT;
+          const ethLedger = new ledgerco.eth(comm);
+          ethLedger
+            .getAppConfiguration_async()
+            .then(config => {
+              const v = config.version && config.version.split('.').map(n => parseInt(n, 10));
+              // detect eip155 support
+              const eip155 = v && (v[0] > 1 || v[1] > 0 || v[2] > 2);
+              ethLedger.eip155 = eip155;
+              this.ethLedger = ethLedger;
+              this.setState({ config: { ...config, eip155 } });
+              resolve();
+            })
+            .fail(reject);
+        })
+        .fail(reject);
     });
   }
   startPolling() {
     this.pollingStopped = false;
     const poll = () => {
-      if (this.pollingStopped) { return null; }
+      if (this.pollingStopped) {
+        return null;
+      }
       const timer = () => {
-        if (this.pollingStopped) { return null; }
+        if (this.pollingStopped) {
+          return null;
+        }
         // reduce poll speed if we are connected
         const pollSpeed = this.state.ready ? POLL_CONNECTED : POLL_DISCONNECTED;
         this.timeout = setTimeout(poll, pollSpeed);
         return null;
       };
       return this.getStatus()
-      .then(timer)
-      .catch(timer);
+        .then(timer)
+        .catch(timer);
     };
     poll();
   }
@@ -113,28 +132,41 @@ export default class LedgerContianer extends Component {
     const { ethLedger } = this;
     return this.pausePollingForPromise(() => signTransaction({ ethLedger, kdPath, txData }));
   }
+  handleSignMessage(kdPath, txData) {
+    const { ethLedger } = this;
+    return this.pausePollingForPromise(() => signMessage({ ethLedger, kdPath, txData }));
+  }
   pausePollingForPromise(promise) {
     const { ethLedger } = this;
     ethLedger.comm.timeoutSeconds = TIMEOUT_SIGNING;
     this.stopPolling();
     return promise()
-    .then((result) => {
-      ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
-      this.startPolling();
-      return result;
-    }).catch((error) => {
-      ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
-      this.startPolling();
-      throw error;
-    });
+      .then(result => {
+        ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
+        this.startPolling();
+        return result;
+      })
+      .catch(error => {
+        ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
+        this.startPolling();
+        throw error;
+      });
   }
   renderLoading() {
-    if (this.props.renderLoading) { return this.props.renderLoading(); }
-    return <span>Please connect Ledger, open the Ethereum app and enable <i>Browser Mode</i></span>;
+    if (this.props.renderLoading) {
+      return this.props.renderLoading();
+    }
+    return (
+      <span>
+        Please connect Ledger, open the Ethereum app and enable <i>Browser Mode</i>
+      </span>
+    );
   }
   renderError() {
     const { error } = this.state;
-    if (this.props.renderError) { return this.props.renderError({ error }); }
+    if (this.props.renderError) {
+      return this.props.renderError({ error });
+    }
     const { errorCode, notExpected } = error;
     if (notExpected) {
       return <span>Address mismatch!</span>;
@@ -143,7 +175,11 @@ export default class LedgerContianer extends Component {
       return <span>U2F is only supported via https://</span>;
     }
     if (errorCode && errorCode === 5) {
-      return <span>Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.</span>;
+      return (
+        <span>
+          Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.
+        </span>
+      );
     }
     return <span>Error: {JSON.stringify(error)}</span>;
   }
@@ -152,8 +188,12 @@ export default class LedgerContianer extends Component {
   }
   render() {
     const { ready, error } = this.state;
-    if (ready) { return this.renderReady(); }
-    if (error) { return this.renderError(); }
+    if (ready) {
+      return this.renderReady();
+    }
+    if (error) {
+      return this.renderError();
+    }
     return this.renderLoading();
   }
 }
