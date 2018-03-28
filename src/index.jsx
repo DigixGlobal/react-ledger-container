@@ -176,13 +176,13 @@ export default class LedgerContianer extends Component {
     } else if (errorCode && errorCode === 5) {
       message = (
         <span>
-          Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.
+          Open app on Ledger Wallet and ensure <i>Browser Mode</i> and <i>Contract Data</i> is enabled.
         </span>
       );
     } else {
       message = (
         <span>
-          Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.
+          Open app on Ledger Wallet and ensure <i>Browser Mode</i> and <i>Contract Data</i> is enabled.
         </span>
       );
     }
