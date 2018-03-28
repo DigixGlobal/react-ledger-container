@@ -164,24 +164,29 @@ export default class LedgerContianer extends Component {
   }
   renderError() {
     const { error } = this.state;
+    let message = '';
     if (this.props.renderError) {
       return this.props.renderError({ error });
     }
     const { errorCode, notExpected } = error;
     if (notExpected) {
       return <span>Address mismatch!</span>;
-    }
-    if (errorCode && errorCode === 2) {
+    } else if (errorCode && errorCode === 2) {
       return <span>U2F is only supported via https://</span>;
-    }
-    if (errorCode && errorCode === 5) {
-      return (
+    } else if (errorCode && errorCode === 5) {
+      message = (
+        <span>
+          Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.
+        </span>
+      );
+    } else {
+      message = (
         <span>
           Open app on Ledger Wallet and ensure <i>Browser Mode</i> is enabled.
         </span>
       );
     }
-    return <span>Error: {JSON.stringify(error)}</span>;
+    return <span>Error: {JSON.stringify(message)}</span>;
   }
   renderReady() {
     return this.props.renderReady(this.getChildProps());
