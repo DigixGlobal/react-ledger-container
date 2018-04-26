@@ -164,7 +164,12 @@ export default class LedgerContianer extends Component {
   }
   renderError() {
     const { error } = this.state;
-    let message = '';
+    const message = (
+      <span>
+        Open the Ethereum app on Ledger Wallet and ensure <i>Browser Mode</i> and{' '}
+        <i>Contract Data</i> is enabled.
+      </span>
+    );
     if (this.props.renderError) {
       return this.props.renderError({ error });
     }
@@ -173,20 +178,8 @@ export default class LedgerContianer extends Component {
       return <span>Address mismatch!</span>;
     } else if (errorCode && errorCode === 2) {
       return <span>U2F is only supported via https://</span>;
-    } else if (errorCode && errorCode === 5) {
-      message = (
-        <span>
-          Open app on Ledger Wallet and ensure <i>Browser Mode</i> and <i>Contract Data</i> is enabled.
-        </span>
-      );
-    } else {
-      message = (
-        <span>
-          Open app on Ledger Wallet and ensure <i>Browser Mode</i> and <i>Contract Data</i> is enabled.
-        </span>
-      );
     }
-    return <span>Error: {JSON.stringify(message)}</span>;
+    return message;
   }
   renderReady() {
     return this.props.renderReady(this.getChildProps());
