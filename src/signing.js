@@ -95,11 +95,8 @@ export function signMessage({ ethLedger, kdPath, txData }) {
     throw Error('Invalid Params');
   }
   return new Promise((resolve, reject) => {
-    // const message = 'test message';
-    // const msgHash = util.sha3(addHexPrefix(message));
-    const convertedMessage = JSON.stringify(txData);
     ethLedger
-      .signPersonalMessage_async(kdPath, Buffer.from(convertedMessage).toString('hex'))
+      .signPersonalMessage_async(kdPath, Buffer.from(txData).toString('hex'))
       .then(result => {
         let v = result.v - 27;
         v = v.toString(16);
