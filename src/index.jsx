@@ -158,7 +158,10 @@ export default class LedgerContianer extends Component {
     }
     return (
       <span>
-        Please connect Ledger, open the Ethereum app and enable <i>Browser Mode</i>
+        Please use Chrome, Opera or Firefox with a U2F extension.
+        After connecting your Ledger, open the Ethereum app and make sure <i>Contract Data</i>
+        is enabled in <i>Settings</i>. If there is a setting for <i>Broswer Mode</i> (for old
+        firmware versions), you need to enable it as well.
       </span>
     );
   }
@@ -166,8 +169,10 @@ export default class LedgerContianer extends Component {
     const { error } = this.state;
     const message = (
       <span>
-        Open the Ethereum app on Ledger Wallet and ensure <i>Browser Mode</i> and{' '}
-        <i>Contract Data</i> is enabled.
+        Please use Chrome, Opera or Firefox with a U2F extension.
+        After connecting your Ledger, open the Ethereum app and make sure <i>Contract Data</i>
+        is enabled in <i>Settings</i>. If there is a setting for <i>Broswer Mode</i> (for old
+        firmware versions), you need to enable it as well.
       </span>
     );
     if (this.props.renderError) {
