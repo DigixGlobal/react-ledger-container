@@ -73,7 +73,7 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
         const signedTx = addHexPrefix(sTx.serialize().toString('hex'));
         return resolve(signedTx);
       })
-      .fail(reject);
+      .catch(reject);
   });
 }
 
@@ -118,6 +118,6 @@ export function signMessage({ ethLedger, kdPath, txData }) {
 
         return resolve(signedTx);
       })
-      .fail(reject);
+      .catch(reject);
   });
 }
