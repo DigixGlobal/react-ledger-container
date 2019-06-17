@@ -76,7 +76,7 @@ export default class LedgerContainer extends Component {
                 }
                 return resolve();
               })
-              .fail(reject);
+              .catch(reject);
           } catch (err) {
             reject(err);
           }
@@ -128,9 +128,9 @@ export default class LedgerContainer extends Component {
               });
               resolve();
             })
-            .fail(reject);
+            .catch(reject);
         })
-        .fail(reject);
+        .catch(reject);
     });
   }
 
