@@ -48,11 +48,20 @@ export default class LedgerContainer extends Component {
 
   componentWillUnmount() {
     this.stopPolling();
+
+    if (this.transport) {
+      try {
+        this.transport.close();
+      } catch (_) {
+        // NOOP
+      }
+    }
   }
 
   getChildProps() {
     return {
       ethLedger: this.ethLedger,
+      transport: this.transport,
       config: this.state.config,
       initiateSigning: this.handleInitiateSigning,
       signTransaction: this.handleSignTransaction,
@@ -120,6 +129,7 @@ export default class LedgerContainer extends Component {
                         const eip155 = version && (version[0] > 1 || version[1] > 0 || version[2] > 2);
                         ethLedger.eip155 = eip155;
 
+                        this.transport = transport;
                         this.ethLedger = ethLedger;
                         this.setState({
                             config: { ...config, eip155 },
