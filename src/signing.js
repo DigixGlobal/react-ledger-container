@@ -55,7 +55,7 @@ export function signTransaction({ ethLedger, kdPath, txData }) {
     const rawHash = rlp.encode(rawTxToSign).toString('hex');
     // sign the transaction
     ethLedger
-      .signTransaction_async(kdPath, rawHash)
+      .signTransaction(kdPath, rawHash)
       .then(result => {
         // sign the transaction with the r,s,v
         const sTx = new EthTx({
@@ -96,7 +96,7 @@ export function signMessage({ ethLedger, kdPath, txData }) {
   }
   return new Promise((resolve, reject) => {
     ethLedger
-      .signPersonalMessage_async(kdPath, Buffer.from(txData).toString('hex'))
+      .signPersonalMessage(kdPath, Buffer.from(txData).toString('hex'))
       .then(result => {
         let v = result.v - 27;
         v = v.toString(16);

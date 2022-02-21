@@ -1,7 +1,7 @@
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ledgerco from 'ledgerco';
+import TransportWebHID from "@ledgerhq/hw-transport-webhid";
+import AppEth from "@ledgerhq/hw-app-eth";
 
 import { signTransaction, signMessage } from './signing';
 import { sanitizeAddress } from './helpers';
@@ -48,11 +48,20 @@ export default class LedgerContainer extends Component {
 
   componentWillUnmount() {
     this.stopPolling();
+
+    if (this.transport) {
+      try {
+        this.transport.close();
+      } catch (_) {
+        // NOOP
+      }
+    }
   }
 
   getChildProps() {
     return {
       ethLedger: this.ethLedger,
+      transport: this.transport,
       config: this.state.config,
       initiateSigning: this.handleInitiateSigning,
       signTransaction: this.handleSignTransaction,
@@ -69,7 +78,7 @@ export default class LedgerContainer extends Component {
         .then(() => {
           try {
             this.ethLedger
-              .getAddress_async(kdPath || `${DEFAULT_KD_PATH}0`)
+              .getAddress(kdPath || `${DEFAULT_KD_PATH}0`)
               .then(result => {
                 if (address && sanitizeAddress(result.address) !== sanitizeAddress(address)) {
                   return reject({ notExpected: true });
@@ -104,33 +113,32 @@ export default class LedgerContainer extends Component {
 
   initLedger() {
     return new Promise((resolve, reject) => {
-      if (this.ethLedger) {
-        resolve(this.ethLedger);
-        return;
-      }
+        if (this.ethLedger) {
+            resolve(this.ethLedger);
+            return;
+        }
 
-      ledgerco.comm_u2f
-        .create_async()
-        .then(comm => {
-          comm.timeoutSeconds = TIMEOUT_DEFAULT;
-          const ethLedger = new ledgerco.eth(comm);
-          ethLedger
-            .getAppConfiguration_async()
-            .then(config => {
-              // detect eip155 support
-              const version = config.version && config.version.split('.').map(n => parseInt(n, 10));
-              const eip155 = version && (version[0] > 1 || version[1] > 0 || version[2] > 2);
-              ethLedger.eip155 = eip155;
+        TransportWebHID.create()
+            .then(transport => {
+                const ethLedger = new AppEth(transport);
 
-              this.ethLedger = ethLedger;
-              this.setState({
-                config: { ...config, eip155 },
-              });
-              resolve();
+                ethLedger.getAppConfiguration()
+                    .then(config => {
+                        // detect eip155 support
+                        const version = config.version && config.version.split('.').map(n => parseInt(n, 10));
+                        const eip155 = version && (version[0] > 1 || version[1] > 0 || version[2] > 2);
+                        ethLedger.eip155 = eip155;
+
+                        this.transport = transport;
+                        this.ethLedger = ethLedger;
+                        this.setState({
+                            config: { ...config, eip155 },
+                        });
+                        resolve();
+                    })
+                    .catch(reject);
             })
             .catch(reject);
-        })
-        .catch(reject);
     });
   }
 
@@ -198,17 +206,14 @@ export default class LedgerContainer extends Component {
 
   pausePollingForPromise(promise) {
     const { ethLedger } = this;
-    ethLedger.comm.timeoutSeconds = TIMEOUT_SIGNING;
     this.stopPolling();
 
     return promise()
       .then(result => {
-        ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
         this.startPolling();
         return result;
       })
       .catch(error => {
-        ethLedger.comm.timeoutSeconds = TIMEOUT_DEFAULT;
         this.startPolling();
         throw error;
       });
