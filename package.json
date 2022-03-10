@@ -16,8 +16,8 @@
   "dependencies": {
     "ethereumjs-tx": "^1.2.5",
     "ethereumjs-util": "^5.1.1",
-    "@ledgerhq/hw-app-eth": "^4.63.2",
-    "@ledgerhq/hw-transport-webhid": "^4.63.2"
+    "@ledgerhq/hw-app-eth": "^6.0.0",
+    "@ledgerhq/hw-transport-webhid": "^6.0.0"
   },
   "peerDependencies": {
     "prop-types": "^15.6.0",
